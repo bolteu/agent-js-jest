@@ -1,0 +1,65 @@
+name: Release / Production / Publishing
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: 'dmc-release:publish'
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    name: Release
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          token: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+          fetch-depth: 0 # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
+
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        shell: /bin/bash -l {0}
+        run: yarn install --prefer-offline --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+
+      - name: Set git user to uipblot
+        run: |
+          git config --global user.name "uipblot"
+          git config --global user.email "uipbot@bolt.eu"
+
+      - name: Update versions | Production
+        uses: changesets/action@v1
+        id: changesets
+        with:
+          setupGitUser: false
+          version: yarn release:bump
+          publish: yarn release:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+
+      - name: Dump published packages
+        if: ${{ steps.changesets.outputs.published }}
+        shell: /bin/bash -l {0}
+        run: |
+          echo '{"publishedPackages": ${{ steps.changesets.outputs.publishedPackages }}}' | jq > 'changesets-publish-summary.json'
+
+      - name: Post an announcement to Slack
+        if: ${{ steps.changesets.outputs.published }}
+        shell: /bin/bash -l {0}
+        run: |
+          npx @bolteu/uiprc-scripts@latest announce --reportPath 'changesets-publish-summary.json' --token '${{ env.UIP_SLACK_API_TOKEN }}'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+          UIP_SLACK_API_TOKEN: ${{ secrets.UIP_SLACK_API_TOKEN }}

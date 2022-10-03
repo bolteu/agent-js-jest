@@ -15,12 +15,16 @@
  */
 
 const RPClient = require('@reportportal/client-javascript');
-const getOptions = require('./utils/getOptions');
+const glob = require('glob');
+const sanitizeFilename = require('sanitize-filename');
+const escapeGlob = require('glob-escape');
+const fs = require('fs');
 const {
     getClientInitObject, getSuiteStartObject,
     getStartLaunchObject, getTestStartObject, getStepStartObject,
     getAgentInfo, getCodeRef, getFullTestName, getFullStepName,
 } = require('./utils/objectUtils');
+const getOptions = require('./utils/getOptions');
 
 const testItemStatuses = { PASSED: 'passed', FAILED: 'failed', SKIPPED: 'pending' };
 const logLevels = {
@@ -77,6 +81,12 @@ class JestReportPortal {
                 this._startTest(t, test.path, testDuration);
             }
 
+            if (parseInt(process.env.DETOX_RERUN_INDEX, 10) > 0) {
+                this._startStep(t, true, test.path);
+                this._finishStep(t, true, parseInt(process.env.DETOX_RERUN_INDEX, 10));
+                return;
+            }
+
             if (!t.invocations) {
                 this._startStep(t, false, test.path);
                 this._finishStep(t, false);
@@ -85,9 +95,8 @@ class JestReportPortal {
 
             for (let i = 0; i < t.invocations; i++) {
                 const isRetried = t.invocations !== 1;
-
                 this._startStep(t, isRetried, test.path);
-                this._finishStep(t, isRetried);
+                this._finishStep(t, isRetried, i);
             }
         });
 
@@ -161,7 +170,7 @@ class JestReportPortal {
         this.promises.push(promise);
     }
 
-    _finishStep(test, isRetried) {
+    _finishStep(test, isRetried, invocation) {
         const errorMsg = test.failureMessages[0];
 
         switch (test.status) {
@@ -169,7 +178,7 @@ class JestReportPortal {
             this._finishPassedStep(isRetried);
             break;
         case testItemStatuses.FAILED:
-            this._finishFailedStep(errorMsg, isRetried);
+            this._finishFailedStep(errorMsg, isRetried, test, invocation);
             break;
         default:
             this._finishSkippedStep(isRetried);
@@ -185,11 +194,11 @@ class JestReportPortal {
         this.promises.push(promise);
     }
 
-    _finishFailedStep(failureMessage, isRetried) {
+    _finishFailedStep(failureMessage, isRetried, test, invocation) {
         const status = testItemStatuses.FAILED;
         const finishTestObj = { status, retry: isRetried };
 
-        this._sendLog(failureMessage);
+        this._sendLog(failureMessage, test, invocation);
 
         const { promise } = this.client.finishTestItem(this.tempStepId, finishTestObj);
 
@@ -197,15 +206,75 @@ class JestReportPortal {
         this.promises.push(promise);
     }
 
-    _sendLog(message) {
+    _sendLog(message, test, invocation) {
         const logObject = {
             message,
             level: logLevels.ERROR,
         };
+
         const { promise } = this.client.sendLog(this.tempStepId, logObject);
 
         promiseErrorHandler(promise);
         this.promises.push(promise);
+
+        const attachments = this._getAttachments(test, invocation);
+        if (attachments.length > 0) {
+            // add attachments to test log
+            attachments.forEach((attachment) => {
+                const logObject = {
+                    message: `Attachment: ${attachment.name}`,
+                    level: logLevels.DEBUG,
+                };
+                const { promise } = this.client.sendLog(this.tempStepId, logObject, attachment);
+                promiseErrorHandler(promise);
+                this.promises.push(promise);
+            });
+        }
+    }
+
+    _getAttachments(test, invocation) {
+        if (!test) {
+            return [];
+        }
+        const attachments = [];
+        let testName = test.fullName;
+        let filenamePrefix = '';
+        if (invocation > 0) {
+            testName = `${testName} (${invocation + 1})`;
+            filenamePrefix = `Retry ${invocation + 1} - `;
+        }
+        // eslint-disable-next-line max-len
+        const files = glob.sync(`${this.reportOptions.artifactsPath}/*/*+(${this._convertTestNameToDirectory(testName)})/*.?(png|log|mp4)`);
+
+        files.forEach((path) => {
+            const filename = filenamePrefix + path.replace(/^.*[\\\/]/, '');
+            const extension = filename.split('.').pop();
+
+            let mimetype;
+            switch (extension) {
+            case 'mp4':
+                mimetype = 'video/mp4';
+                break;
+            case 'png':
+                mimetype = 'image/png';
+                break;
+            default:
+                mimetype = 'text/plain';
+            }
+
+            attachments.push({
+                name: filename,
+                type: mimetype,
+                content: fs.readFileSync(path),
+            });
+        });
+
+        return attachments;
+    }
+
+    _convertTestNameToDirectory(testName) {
+        const SANITIZE_OPTIONS = { replacement: '_' };
+        return escapeGlob(sanitizeFilename(testName, SANITIZE_OPTIONS));
     }
 
     _finishSkippedStep(isRetried) {

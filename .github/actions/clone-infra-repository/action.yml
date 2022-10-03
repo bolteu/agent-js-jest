@@ -1,0 +1,20 @@
+name: 'UI Platform / Clone ui-platform-commons repository'
+description: 'Clone ui-platform-commons repository'
+inputs:
+  github-token:
+    description: 'Github API Token'
+    required: true
+  uip-version:
+    description: 'ui-platform-commons version'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout UIP Infra
+      uses: actions/checkout@v2
+      with:
+        repository: bolteu/ui-platform-commons
+        token: ${{ inputs.github-token }}
+        path: ./.github/uip-infra
+        ref: v${{ inputs.uip-version }}

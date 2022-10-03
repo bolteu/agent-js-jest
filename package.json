@@ -1,11 +1,11 @@
 {
-  "name": "@reportportal/agent-js-jest",
-  "version": "5.0.4",
-  "description": "A Jest reporter that uploads test results to ReportPortal",
+  "name": "@bolteu/agent-js-jest",
+  "version": "5.2.0",
+  "description": "A Detox Jest reporter that uploads test results to ReportPortal",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reportportal/agent-js-jest.git"
+    "url": "git+https://github.com/bolteu/agent-js-jest.git"
   },
   "author": "ReportPortal.io",
   "contributors": [
@@ -14,6 +14,9 @@
     },
     {
       "name": "Ringo De Smet"
+    },
+    {
+      "name": "Nikita Popov"
     },
     {
       "name": "Ontoforce",
@@ -33,29 +36,37 @@
     "lint": "eslint  . --quiet",
     "format": "npm run lint -- --fix",
     "test": "jest --detectOpenHandles --config ./jest.config.js",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "release:bump": "sh ./scripts/bump-version.sh",
+    "release:publish": "yarn changeset publish"
   },
   "dependencies": {
     "@jest/reporters": "27.0.6",
     "@reportportal/client-javascript": "^5.0.6",
-    "jest-cli": "^27.0.6"
+    "glob": "^8.0.3",
+    "glob-escape": "^0.0.2",
+    "jest-cli": "^27.0.6",
+    "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {
+    "@changesets/changelog-git": "^0.1.13",
+    "@changesets/cli": "^2.25.0",
     "@types/jest": "^27.0.1",
-    "jest": "^27.0.6",
-    "jest-circus": "^27.0.6",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.24.2",
-    "eslint-plugin-node": "^11.1.0"
+    "eslint-plugin-node": "^11.1.0",
+    "jest": "^27.0.6",
+    "jest-circus": "^27.0.6"
   },
   "bugs": {
-    "url": "https://github.com/reportportal/agent-js-jest/issues"
+    "url": "https://github.com/bolteu/agent-js-jest/issues"
   },
-  "homepage": "https://github.com/reportportal/agent-js-jest#readme",
+  "homepage": "https://github.com/bolteu/agent-js-jest#readme",
   "keywords": [
     "epam",
     "reportportal",
+    "detox",
     "rp",
     "jest"
   ]

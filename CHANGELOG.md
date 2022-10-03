@@ -1,4 +1,14 @@
 
+## [5.2.0] - 2022-09-19
+
+## [5.1.1] - 2022-09-19
+### Added
+- Detox support - artifacts as attachments, rerun handling on failing tests.
+- Possibility to provide rerun boolean via `RP_RERUN` environment variable.
+- Possibility to provide rerun uuid via `RP_RERUNOF` environment variable.
+- Possibility to provide description via `RP_DESCRIPTION` environment variable.
+- Possibility to provide artifacts path via `RP_ARTIFACTS_PATH` environment variable.
+
 ## [5.0.4] - 2022-05-30
 ### Added
 - Possibility to provide endpoint url via `RP_ENDPOINT` environment variable

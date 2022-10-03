@@ -1,0 +1,8 @@
+{
+  "repository": "bolteu/agent-js-jest",
+  "project": "Bolt Report portal agent",
+  "defaultBranch": "master",
+  "releaseReportSlackChannel": "dev-delivery-e2e-automation",
+  "envFilePath": "uip.env",
+  "bundleConfigPath": ".bundle/config"
+}
