@@ -1,0 +1,55 @@
+name: Release / RC
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: 'dmc-release:rc'
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Release agent-js-jest
+    steps:
+      - name: Set branch name
+        id: branch
+        run: echo "::set-output name=branch-name::$(echo ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}})"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.branch.outputs.branch-name }}
+          token: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+          fetch-depth: 0 # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
+
+      - name: Set current sha
+        id: short-sha
+        run: echo "::set-output name=short-sha::$(git rev-parse --short HEAD)"
+
+      - uses: actions/setup-node@v3
+        with:
+          registry-url: 'https://npm.pkg.github.com'
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        shell: /bin/bash -l {0}
+        run: yarn install --prefer-offline --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+
+      - name: Update versions | RC
+        shell: /bin/bash -l {0}
+        run: |
+          echo 'Preparing RC release...'
+
+          yarn changeset version --snapshot 'rc.${{ steps.short-sha.outputs.short-sha }}'
+          yarn install --no-frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}
+
+      - name: Publish packages
+        shell: /bin/bash -l {0}
+        run: yarn changeset publish --tag 'rc' --no-git-tag
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.UIP_GITHUB_API_TOKEN }}

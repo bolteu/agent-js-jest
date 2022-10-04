@@ -35,6 +35,7 @@ const testResult = {
     testResults: [
         {
             title: 'Title',
+            fullName: 'Suite name Test name',
             status: 'failed',
             ancestorTitles: ['Suite name', 'Test name'],
             failureMessages: 'error message',
@@ -99,6 +100,7 @@ describe('index script', () => {
                 rerun: undefined,
                 rerunOf: undefined,
                 startTime: new Date().valueOf(),
+                artifactsPath: '__e2e__/artifacts',
             };
 
             expect(reporter.client.startLaunch).toHaveBeenCalledWith(launchObj);
@@ -124,7 +126,7 @@ describe('index script', () => {
             );
             expect(spyStartTest).toHaveBeenCalledWith(testResult.testResults[0], testObj.path, duration);
             expect(spyStartStep).toHaveBeenCalledWith(testResult.testResults[0], false, testObj.path);
-            expect(spyFinishStep).toHaveBeenCalledWith(testResult.testResults[0], false);
+            expect(spyFinishStep).toHaveBeenCalledWith(testResult.testResults[0], false, 0);
             expect(spyFinishTest).toHaveBeenCalledWith('1234', 'tempTestId');
             expect(spyFinishSuite).toHaveBeenCalledWith('4321', 'tempSuiteId');
         });
@@ -137,7 +139,7 @@ describe('index script', () => {
             reporter.onTestResult(testObj, testResult);
 
             expect(spyStartStep).toHaveBeenCalledWith(testResult.testResults[0], false, testObj.path);
-            expect(spyFinishStep).toHaveBeenCalledWith(testResult.testResults[0], false);
+            expect(spyFinishStep).toHaveBeenCalledWith(testResult.testResults[0], false, 0);
             expect(spyStartStep).toHaveBeenCalledTimes(1);
             expect(spyFinishStep).toHaveBeenCalledTimes(1);
         });
@@ -150,6 +152,7 @@ describe('index script', () => {
                 testResults: [
                     {
                         title: 'Title',
+                        fullName: 'Suite name Test name',
                         status: 'failed',
                         ancestorTitles: ['Suite name', 'Test name'],
                         failureMessages: 'error message',
@@ -161,7 +164,7 @@ describe('index script', () => {
             reporter.onTestResult(testObj, testResult);
 
             expect(spyStartStep).toHaveBeenCalledWith(testResult.testResults[0], true, testObj.path);
-            expect(spyFinishStep).toHaveBeenCalledWith(testResult.testResults[0], true);
+            expect(spyFinishStep).toHaveBeenCalledWith(testResult.testResults[0], true, 1);
             expect(spyStartStep).toHaveBeenCalledTimes(2);
             expect(spyFinishStep).toHaveBeenCalledTimes(2);
         });
@@ -174,6 +177,7 @@ describe('index script', () => {
                 testResults: [
                     {
                         title: 'Title',
+                        fullName: 'Suite name Test name',
                         status: 'failed',
                         ancestorTitles: ['Suite name', 'Test name'],
                         failureMessages: 'error message',
@@ -193,6 +197,7 @@ describe('index script', () => {
                 testResults: [
                     {
                         title: 'Title',
+                        fullName: 'Suite name Test name',
                         status: 'failed',
                         ancestorTitles: ['Suite name'],
                         failureMessages: 'error message',
@@ -346,12 +351,19 @@ describe('index script', () => {
             const spyFinishFailedTest = jest.spyOn(reporter, '_finishFailedStep');
             const spyFinishSkippedTest = jest.spyOn(reporter, '_finishSkippedStep');
 
+            const failedTest = {
+                status: testItemStatuses.FAILED,
+                failureMessages: ['error message'],
+                fullName: 'Suite name Test name',
+            };
+
             reporter._finishStep(
-                { status: testItemStatuses.FAILED, failureMessages: ['error message'] },
+                failedTest,
                 false,
+                0,
             );
 
-            expect(spyFinishFailedTest).toHaveBeenCalledWith('error message', false);
+            expect(spyFinishFailedTest).toHaveBeenCalledWith('error message', false, failedTest, 0);
             expect(spyFinishPassedTest).not.toHaveBeenCalled();
             expect(spyFinishSkippedTest).not.toHaveBeenCalled();
         });
@@ -426,9 +438,9 @@ describe('index script', () => {
             };
             reporter.tempStepId = 'tempStepId';
 
-            reporter._finishFailedStep('error message', false);
+            reporter._finishFailedStep('error message', false, testResult.testResults[0], 0);
 
-            expect(spySendLog).toHaveBeenCalledWith('error message');
+            expect(spySendLog).toHaveBeenCalledWith('error message', testResult.testResults[0], 0);
             expect(reporter.client.finishTestItem).toHaveBeenCalledWith('tempStepId', expectedFinishTestItemParameter);
         });
     });

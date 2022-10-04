@@ -43,6 +43,9 @@ const defaultOptions = {
     ],
     rerun: true,
     rerunOf: '00000000-0000-0000-0000-000000000000',
+    artifactsPath: '__e2e__/artifacts',
+    disabled: false,
+    disableUploadAttachments: false,
 };
 const currentDate = new Date();
 const RealDate = Date;
@@ -91,6 +94,7 @@ describe('Object Utils script', () => {
                 rerun: true,
                 rerunOf: '00000000-0000-0000-0000-000000000000',
                 startTime: new Date().valueOf(),
+                artifactsPath: '__e2e__/artifacts',
             };
 
             const startLaunchObject = getStartLaunchObject(defaultOptions);
@@ -110,6 +114,7 @@ describe('Object Utils script', () => {
                     },
                 ],
                 startTime: new Date().valueOf(),
+                artifactsPath: '__e2e__/artifacts',
             };
 
             const startLaunchObject = getStartLaunchObject();
@@ -189,6 +194,9 @@ describe('Object Utils script', () => {
                 ],
                 mode: 'DEBUG',
                 debug: true,
+                artifactsPath: '__e2e__/artifacts',
+                disabled: false,
+                disableUploadAttachments: false,
             };
             const options = {
                 endpoint: 'endpoint',
@@ -208,6 +216,9 @@ describe('Object Utils script', () => {
         test('should return client init object with default values if options don\'t set', () => {
             const expectedClientInitObject = {
                 launch: 'Unit Tests',
+                artifactsPath: '__e2e__/artifacts',
+                disableUploadAttachments: false,
+                disabled: false,
             };
 
             const clientInitObject = getClientInitObject();

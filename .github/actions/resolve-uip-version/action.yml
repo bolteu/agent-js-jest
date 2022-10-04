@@ -1,0 +1,29 @@
+name: 'UI Platform / Resolve npm ui-platform-commons version'
+description: 'Resolves npm ui-platform-commons version'
+inputs:
+  github-token:
+    description: 'Github API Token'
+    required: true
+outputs:
+  uiprc-npm-version:
+    description: 'Latest npm version of uip-scripts'
+    value: ${{ steps.uiprc.outputs.UIPRC }}
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v3
+      with:
+        registry-url: 'https://npm.pkg.github.com'
+        node-version-file: '.nvmrc'
+
+    - name: Get uip-scripts version
+      shell: /bin/bash -l {0}
+      id: uiprc
+      run: |
+        version=$(npx @bolteu/uiprc-scripts resolve)
+        echo ::set-output name=UIPRC::$version
+        echo "Resolved to $version"
+      env:
+        GITHUB_API_TOKEN: ${{ inputs.github-token }}
+        NODE_AUTH_TOKEN: ${{ inputs.github-token }}

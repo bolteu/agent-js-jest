@@ -27,14 +27,15 @@ const getStartLaunchObject = (options = {}) => {
 
     return {
         launch: process.env.RP_LAUNCH || options.launch || 'Unit Tests',
-        description: options.description,
+        description: process.env.RP_DESCRIPTION || options.description,
         attributes: options.attributes ? options.attributes.concat(systemAttr) : systemAttr,
-        rerun: options.rerun,
-        rerunOf: options.rerunOf,
+        rerun: parseInt(process.env.DETOX_RERUN_INDEX, 10) > 0 || process.env.RP_RERUN || options.rerun,
+        rerunOf: process.env.RP_RERUNOF || options.rerunOf,
         mode: options.mode,
         skippedIssue: options.skippedIssue,
         startTime: new Date().valueOf(),
         id: process.env.RP_LAUNCH_ID || options.launchId,
+        artifactsPath: process.env.RP_ARTIFACTS_PATH || options.artifactsPath || '__e2e__/artifacts',
     };
 };
 
@@ -77,16 +78,22 @@ const getClientInitObject = (options = {}) => {
         endpoint: process.env.RP_ENDPOINT || options.endpoint,
         launch: process.env.RP_LAUNCH || options.launch || 'Unit Tests',
         project: process.env.RP_PROJECT_NAME || options.project,
-        rerun: options.rerun,
-        rerunOf: options.rerunOf,
+        rerun: parseInt(process.env.DETOX_RERUN_INDEX, 10) > 0 || process.env.RP_RERUN || options.rerun,
+        rerunOf: process.env.RP_RERUNOF || options.rerunOf,
         skippedIssue: options.skippedIssue,
-        description: options.description,
+        description: process.env.RP_DESCRIPTION || options.description,
         attributes: env_attributes || options.attributes,
         mode: options.mode,
         debug: options.debug,
         restClientConfig: options.restClientConfig,
         launchId: process.env.RP_LAUNCH_ID || options.launchId,
         logLaunchLink: options.logLaunchLink,
+        artifactsPath: process.env.RP_ARTIFACTS_PATH || options.artifactsPath || '__e2e__/artifacts',
+        disabled: process.env.RP_DISABLED || options.disabled || false,
+        disableUploadAttachments:
+            process.env.RP_DISABLE_UPLOAD_ATTACHMENTS
+            || options.disableUploadAttachments
+            || false,
     };
 };
 
