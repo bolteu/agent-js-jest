@@ -1,11 +1,11 @@
-# @reportportal/agent-js-jest-detox
+# @bolteu/agent-js-jest
 
 A Jest reporter with Detox support that uploads the results to a [ReportPortal](http://reportportal.io/) server.
 
 ## Installation
 
 ```shell
-npm install --save-dev @reportportal/agent-js-jest-detox
+npm install --save-dev @bolteu/agent-js-jest
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ In your jest config section of `package.json`, add the following entry:
     "jest": {
         "reporters": [
             "default",
-            ["@reportportal/agent-js-jest",
+            ["@bolteu/agent-js-jest",
             {
                 "token": "00000000-0000-0000-0000-000000000000",
                 "endpoint": "https://your.reportportal.server/api/v1",
@@ -51,7 +51,7 @@ module.exports = {
     reporters: [
         "default",
         [
-            "@reportportal/agent-js-jest",
+            "@bolteu/agent-js-jest",
             {
                 "token": "00000000-0000-0000-0000-000000000000",
                 "endpoint": "https://your.reportportal.server/api/v1",
