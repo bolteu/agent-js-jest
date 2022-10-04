@@ -44,6 +44,8 @@ const defaultOptions = {
     rerun: true,
     rerunOf: '00000000-0000-0000-0000-000000000000',
     artifactsPath: '__e2e__/artifacts',
+    disabled: false,
+    disableUploadAttachments: false,
 };
 const currentDate = new Date();
 const RealDate = Date;
@@ -193,6 +195,8 @@ describe('Object Utils script', () => {
                 mode: 'DEBUG',
                 debug: true,
                 artifactsPath: '__e2e__/artifacts',
+                disabled: false,
+                disableUploadAttachments: false,
             };
             const options = {
                 endpoint: 'endpoint',
@@ -213,6 +217,8 @@ describe('Object Utils script', () => {
             const expectedClientInitObject = {
                 launch: 'Unit Tests',
                 artifactsPath: '__e2e__/artifacts',
+                disableUploadAttachments: false,
+                disabled: false,
             };
 
             const clientInitObject = getClientInitObject();

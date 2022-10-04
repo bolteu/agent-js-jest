@@ -37,7 +37,8 @@ const logLevels = {
 
 const promiseErrorHandler = (promise) => {
     promise.catch((err) => {
-        console.error(err);
+        console.log(err); // suppressed to not affect GitHub actions
+        console.log('::set-output name=RP_ERROR::true');
     });
 };
 
@@ -50,10 +51,14 @@ class JestReportPortal {
         this.tempTestIds = new Map();
         this.tempStepId = null;
         this.promises = [];
+        this.disabled = this.reportOptions.disabled;
+        this.disableUploadAttachments = this.reportOptions.disableUploadAttachments;
     }
 
     // eslint-disable-next-line no-unused-vars
     onRunStart() {
+        if (this.disabled) return;
+
         const startLaunchObj = getStartLaunchObject(this.reportOptions);
         const { tempId, promise } = this.client.startLaunch(startLaunchObj);
 
@@ -64,6 +69,8 @@ class JestReportPortal {
 
     // eslint-disable-next-line no-unused-vars
     onTestResult(test, testResult) {
+        if (this.disabled) return;
+
         let suiteDuration = 0;
         let testDuration = 0;
         for (let result = 0; result < testResult.testResults.length; result++) {
@@ -110,6 +117,8 @@ class JestReportPortal {
 
     // eslint-disable-next-line no-unused-vars
     async onRunComplete() {
+        if (this.disabled) return;
+
         await Promise.all(this.promises);
         if (this.reportOptions.launchId) return;
         const { promise } = this.client.finishLaunch(this.tempLaunchId);
@@ -117,6 +126,7 @@ class JestReportPortal {
         if (this.reportOptions.logLaunchLink === true) {
             promise.then((response) => {
                 console.log(`\nReportPortal Launch Link: ${response.link}`);
+                console.log(`::set-output name=RP_LINK::${response.link}`);
             });
         }
 
@@ -216,6 +226,8 @@ class JestReportPortal {
 
         promiseErrorHandler(promise);
         this.promises.push(promise);
+
+        if (this.disableUploadAttachments) return;
 
         const attachments = this._getAttachments(test, invocation);
         if (attachments.length > 0) {

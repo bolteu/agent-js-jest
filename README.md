@@ -59,6 +59,8 @@ module.exports = {
                 "launch": "YourLauncherName",
                 "description": "YourDescription",
                 "logLaunchLink": true,
+                "disabled": true,
+                "disableUploadAttachments": true,
                 "attributes": [
                     {
                         "key": "YourKey",
@@ -86,6 +88,8 @@ $ export RP_RERUN=boolean
 $ export RP_RERUNOF=EXIST_LAUNCH_ID
 $ export RP_DESCRIPTION=MY_LAUNCH_DESCRIPTION
 $ export RP_ARTIFACTS_PATH=MY_DETOX_ARTIFACTS_PATH
+$ export RP_DISABLED=false
+$ export RP_DISABLE_UPLOAD_ATTACHMENTS=false
 ```
 
 This for your convenience in case you has a continuous job that run your tests and may post the results pointing to a different Report Portal definition of project, launcher name or tags.
@@ -126,6 +130,26 @@ Example:
 
 ```json
 "artifactsPath": '__e2e__/artifacts/'
+```
+
+## Disabled flag:
+
+This flag disables sending e2e tests data to report portal. (Default: `false`)
+
+Example:
+
+```json
+"disabled": false
+```
+
+## DisableUploadAttachments flag:
+
+This flag disables sending e2e tests attachments to report portal. (Default: `false`)
+
+Example:
+
+```json
+"disableUploadAttachments": true
 ```
 
 ## Skipped issue:

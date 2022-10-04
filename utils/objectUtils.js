@@ -89,6 +89,11 @@ const getClientInitObject = (options = {}) => {
         launchId: process.env.RP_LAUNCH_ID || options.launchId,
         logLaunchLink: options.logLaunchLink,
         artifactsPath: process.env.RP_ARTIFACTS_PATH || options.artifactsPath || '__e2e__/artifacts',
+        disabled: process.env.RP_DISABLED || options.disabled || false,
+        disableUploadAttachments:
+            process.env.RP_DISABLE_UPLOAD_ATTACHMENTS
+            || options.disableUploadAttachments
+            || false,
     };
 };
 
